@@ -1,8 +1,13 @@
 #include "ofApp.h"
 #include "string"
 
+// FULL PLOT RANGE
 #define PLOTHEIGTH 11040
 #define PLOTWIDTH 16158
+
+// 210 x 210 (A4 Square)
+#define PLOTHEIGTH_A4S 7340
+#define PLOTWIDTH_A4S 8200
 
 //--------------------------------------------------------------
 void ofApp::setup(){
@@ -20,6 +25,24 @@ void ofApp::setup(){
 	
 	memset(bytesReadString, 0, 255);
     
+    // now lets generate our drawing
+    int lineCount = 42;
+    
+    // margin to paper edge
+    int margin = 400;
+    int lineheight = ( PLOTHEIGTH_A4S - margin )  / lineCount;
+    
+    string HPGLInit = "IN;SP1;";
+    string HPGLOut = "\r";
+
+    for (int i=0; i < lineCount; i++) {
+        int y = lineheight * i;
+        HPGLString = HPGLString + "VS " + ofToString(lineCount-i) + ";PA" + ofToString(margin) + "," + ofToString(y) + ";PD;PA" + ofToString(PLOTWIDTH_A4S - margin) + "," + ofToString(y) + ";PU;";
+        cout << margin << "," << y << " -> " << margin <<  "," << y << endl ;
+    }
+    
+    HPGLString = HPGLInit + HPGLString + HPGLOut;
+    cout << HPGLString;
 }
 
 //--------------------------------------------------------------
@@ -51,12 +74,21 @@ void ofApp::draw(){
 //--------------------------------------------------------------
 void ofApp::keyPressed  (int key){ 
     switch(key) {
+        
+    case 's':
+            cout << "Send" << endl ;
+            sendStringToPlotter(&HPGLString);
+            break;
+            
     case 'x':
         cout << "Reset" << endl ;
-            string outString = "OS;OE;IN;\r";
-            sendStringToPlotter(&outString);
+        string outString = "OS;OE;IN;\r";
+        sendStringToPlotter(&outString);
         break;
+
     }
+    
+
 }
 
 //--------------------------------------------------------------
