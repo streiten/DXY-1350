@@ -25,17 +25,19 @@ void ofApp::setup(){
     
     recalculate = true;
     
+    
+    // testing string stuffs
     //cout << ofToHex('A');
     //cout << "String: " << ofHexToString("1B2e4d303b303b303b31333b303b303a1B2e493135303b303b31373a1B2e4e3b31393a1B2e403b303a");
     //cout << "Char: " << ofHexToChar("1B");
     //cout << "Int:  " << ofHexToInt("1B");
     
-    char string[] = { 27 ,'*','+' , 0x1B };
-    char string1[] = { "\x1B.M0" };
+    //char string[] = { 27 ,'*','+' , 0x1B };
+    //char string1[] = { "\x1B.M0" };
     
-    for (int i = 0; i < strlen(string1); i++) {
+    //for (int i = 0; i < strlen(string1); i++) {
         //  cout << i << ":" << int(string1[i]);
-    }
+    //}
     
 }
 
@@ -49,14 +51,16 @@ void ofApp::update(){
         plot.clearHpglCmdBuffer();
         simulationPoints.clear();
         
+        // testing the 42 diffrent plot speeds HPGL "VS"
+
         // Black pen pls
         plot.hpglCmd.hpglCmd = "SP1;";
         plot.hpglCmdBuffer.push(plot.hpglCmd);
         
-        // now lets generate our drawing
+        // now lets generate our drawing: 42 VS values = 42 lines
         int lineCount = 42;
         
-        // margin to paper edge
+        // Margin to paper edge
         int margin = 400;
         int lineheight = ( PLOTHEIGTH - 2 * margin )  / (lineCount-1);
         
@@ -65,27 +69,26 @@ void ofApp::update(){
             int x = margin;
             int x1 = PLOTWIDTH - margin;
             
-            // Setting up the HPGL Cmd
-            HPGLString =  "VS " + ofToString(lineCount-i) + ";PA" + ofToString(x) + "," + ofToString(y) + ";PD;PA" + ofToString(x1) + "," + ofToString(y) + ";PU;";
-            plot.hpglCmd.hpglCmd = HPGLString;
-            plot.hpglCmd.hpglCmdDelay = 0;
+            // Setting up the HPGL Cmd for each line
+            plot.hpglCmd.hpglCmd =  "VS " + ofToString(lineCount-i) + ";PA" + ofToString(x) + "," + ofToString(y) + ";PD;PA" + ofToString(x1) + "," + ofToString(y) + ";PU;";
+            // plot.hpglCmd.hpglCmdDelay = 0;
+            
             plot.hpglCmdBuffer.push(plot.hpglCmd);
             
-            // Simulation on Screen
+            // for simulation on Screen
             simulationPoints.push_back(translateToOFCords(x,y));
             simulationPoints.push_back( translateToOFCords(x1,y));
             
             // cout << margin << "," << y << " -> " << margin <<  "," << y << endl ;
         }
         
-        string HPGLOut = "\r";
-        
-        plot.hpglCmd.hpglCmd = HPGLOut;
+        // Is this still needed actually ? final CR for end of command ?
+        plot.hpglCmd.hpglCmd ="\r";
         plot.hpglCmdBuffer.push(plot.hpglCmd);
     }
     
     plot.update();
-    
+
 }
 
 //--------------------------------------------------------------
@@ -102,27 +105,7 @@ void ofApp::draw(){
     }
     
     // lets keep an eye on the buffer
-    ofPushMatrix();
-    ofFill();
-    ofSetColor(192);
-    
-    int bufferSizeScaled = plot.hpglCmdBuffer.size() / 2;
-
-    ofDrawRectangle(0, 0,bufferSizeScaled,15 );
-    if(plot.deviceBufferFull){
-        ofPushStyle();
-        ofSetColor(255,0,0);
-        statusText = "XOFF";
-    } else {
-        ofSetColor(0,255,0);
-        statusText = "XON";
-    }
-    
-    ofDrawBitmapString(statusText, bufferSizeScaled + 3, 12 );
-    ofDrawBitmapString(ofToString(plot.hpglCmdBuffer.size()), bufferSizeScaled - 36, 11 );
-
-    ofPopStyle();
-    ofPopMatrix();
+    drawBufferInfo();
 }
 
 //--------------------------------------------------------------
@@ -184,6 +167,7 @@ void ofApp::mouseDragged(int x, int y, int button){
     pY = ( ofGetHeight() - mouseY ) * PLOTHEIGTH / ofGetHeight();
     
     pushy.hpglCmd  = "PA" + ofToString(pX) + "," + ofToString(pY) + ";";
+    pushy.hpglCmdDelay = 0;
     plot.hpglCmdBuffer.push(pushy);
     
 }
@@ -196,9 +180,9 @@ void ofApp::mousePressed(int x, int y, int button){
     pY = ( ofGetHeight() - mouseY ) * PLOTHEIGTH / ofGetHeight();
     
     pushy.hpglCmd = "PA" + ofToString(pX) + "," + ofToString(pY) + ";PD;\r";
+    pushy.hpglCmdDelay = 0;
+
     plot.hpglCmdBuffer.push(pushy);
-    
-    cout << "Mouse pressed" << endl;
     
 }
 
@@ -208,11 +192,11 @@ void ofApp::mouseReleased(int x, int y, int button){
     
     pX = mouseX * PLOTWIDTH / ofGetWidth();
     pY = ( ofGetHeight() - mouseY ) * PLOTHEIGTH / ofGetHeight();
-    
+    pushy.hpglCmdDelay = 0;
+
     pushy.hpglCmd = "PU;\r";
     plot.hpglCmdBuffer.push(pushy);
-    
-    cout << "Mouse released" << endl;
+
 }
 
 //--------------------------------------------------------------
@@ -248,4 +232,28 @@ ofPoint ofApp::translateToOFCords(int x , int y) {
     
     return ofPoint(ofWX,ofWY);
 }
+
+void ofApp::drawBufferInfo(){
+    ofPushMatrix();
+    ofFill();
+    ofSetColor(192);
+    
+    int bufferSizeScaled = plot.hpglCmdBuffer.size() / 2;
+    
+    ofDrawRectangle(0, 0,bufferSizeScaled,15 );
+    if(plot.deviceBufferFull){
+        ofPushStyle();
+        ofSetColor(255,0,0);
+        statusText = "XOFF";
+    } else {
+        ofSetColor(0,255,0);
+        statusText = "XON";
+    }
+    
+    ofDrawBitmapString(statusText, bufferSizeScaled + 3, 12 );
+    ofDrawBitmapString(ofToString(plot.hpglCmdBuffer.size()), bufferSizeScaled - 36, 11 );
+    
+    ofPopStyle();
+    ofPopMatrix();
+};
 

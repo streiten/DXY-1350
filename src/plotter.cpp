@@ -56,7 +56,7 @@ void plotter::update(){
                 struct hpglCmd poppy = hpglCmdBuffer.front();
                 
                 // if there is a delay set, reinit the timer for that
-                if(poppy.hpglCmdDelay) {
+                if(poppy.hpglCmdDelay > 0) {
                     timer.set(poppy.hpglCmdDelay,true);
                 } else {
                     timer.set(0,true);

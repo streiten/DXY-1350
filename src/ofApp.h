@@ -27,8 +27,10 @@ public:
     plotter plot;
     int pX, pY;
     
+    
     vector<ofPoint> simulationPoints;
     string statusText;
+    void drawBufferInfo();
     
     ofPoint translateToOFCords(int x, int y);
     
