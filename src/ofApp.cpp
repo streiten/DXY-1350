@@ -16,7 +16,7 @@ void ofApp::setup(){
     ofSetFrameRate(60);
     
     ofBackground(255);
-    ofSetLogLevel(OF_LOG_VERBOSE);
+    // ofSetLogLevel(OF_LOG_VERBOSE);
     
     plot.setup();
     
@@ -55,7 +55,12 @@ void ofApp::update(){
 
         // Black pen pls
         plot.hpglCmd.hpglCmd = "SP1;";
-        plot.hpglCmdBuffer.push(plot.hpglCmd);
+        plot.hpglCmd.hpglCmdDelay = 0;
+        // plot.hpglCmdBuffer.push(plot.hpglCmd);
+        
+        //plot.hpglCmd.hpglCmd = "\r";
+        //plot.hpglCmd.hpglCmdDelay = 0;
+        //plot.hpglCmdBuffer.push(plot.hpglCmd);
         
         // now lets generate our drawing: 42 VS values = 42 lines
         int lineCount = 42;
@@ -70,10 +75,12 @@ void ofApp::update(){
             int x1 = PLOTWIDTH - margin;
             
             // Setting up the HPGL Cmd for each line
-            plot.hpglCmd.hpglCmd =  "VS " + ofToString(lineCount-i) + ";PA" + ofToString(x) + "," + ofToString(y) + ";PD;PA" + ofToString(x1) + "," + ofToString(y) + ";PU;";
-            // plot.hpglCmd.hpglCmdDelay = 0;
+            plot.hpglCmd.hpglCmd =  "PA" + ofToString(x) + "," + ofToString(y) + "," + ofToString(x1) + "," + ofToString(y) + ";\r";
+            plot.hpglCmd.hpglCmdDelay = 0;
             
             plot.hpglCmdBuffer.push(plot.hpglCmd);
+            
+            //plot.outputBuffer();
             
             // for simulation on Screen
             simulationPoints.push_back(translateToOFCords(x,y));
@@ -83,8 +90,8 @@ void ofApp::update(){
         }
         
         // Is this still needed actually ? final CR for end of command ?
-        plot.hpglCmd.hpglCmd ="\r";
-        plot.hpglCmdBuffer.push(plot.hpglCmd);
+        //plot.hpglCmd.hpglCmd ="\r";
+        //plot.hpglCmdBuffer.push(plot.hpglCmd);
     }
     
     plot.update();
@@ -135,7 +142,7 @@ void ofApp::keyPressed  (int key) {
         case 'd': {
             
             struct plotter::hpglCmd pushy;
-            pushy.hpglCmd = "PA0,0;PA1000,1000;";
+            pushy.hpglCmd = "PA"+ ofToString(floor(ofRandom(8000))) + "," + ofToString(floor(ofRandom(8000))) + ";\r";
             pushy.hpglCmdDelay = ofRandom(100);
             plot.hpglCmdBuffer.push(pushy);
             break;
@@ -144,6 +151,18 @@ void ofApp::keyPressed  (int key) {
         case 'x': {
             cout << "Reset" << endl ;
             plot.reset();
+            break;
+        }
+            
+        case 'e': {
+            cout << "Output Err" << endl ;
+            plot.outputError();
+            break;
+        }
+        
+        case 'c': {
+            cout << "Reset" << endl ;
+            plot.outputBuffer();
             break;
         }
     }
@@ -166,7 +185,7 @@ void ofApp::mouseDragged(int x, int y, int button){
     pX = mouseX * PLOTWIDTH / ofGetWidth();
     pY = ( ofGetHeight() - mouseY ) * PLOTHEIGTH / ofGetHeight();
     
-    pushy.hpglCmd  = "PA" + ofToString(pX) + "," + ofToString(pY) + ";";
+    pushy.hpglCmd  = "PA" + ofToString(pX) + "," + ofToString(pY) + ";\r";
     pushy.hpglCmdDelay = 0;
     plot.hpglCmdBuffer.push(pushy);
     
@@ -192,9 +211,10 @@ void ofApp::mouseReleased(int x, int y, int button){
     
     pX = mouseX * PLOTWIDTH / ofGetWidth();
     pY = ( ofGetHeight() - mouseY ) * PLOTHEIGTH / ofGetHeight();
-    pushy.hpglCmdDelay = 0;
 
     pushy.hpglCmd = "PU;\r";
+    pushy.hpglCmdDelay = 0;
+
     plot.hpglCmdBuffer.push(pushy);
 
 }
@@ -229,7 +249,6 @@ ofPoint ofApp::translateToOFCords(int x , int y) {
     float ofWX = ofMap(x,0,PLOTWIDTH,0,ofGetWidth());
     // inversing y here for oF zero zero cords in upper left
     float ofWY = ofMap(PLOTHEIGTH-y-400,0,PLOTHEIGTH,0,ofGetHeight());
-    
     return ofPoint(ofWX,ofWY);
 }
 

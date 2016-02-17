@@ -23,6 +23,7 @@ public:
         int hpglCmdDelay;
     };
     
+    
     queue <hpglCmd> hpglCmdBuffer;
     hpglCmd hpglCmd;
     void clearHpglCmdBuffer();
