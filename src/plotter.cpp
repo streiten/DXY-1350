@@ -113,26 +113,24 @@ void plotter::pushInitCmdsToBuffer(){
     
     // Initialize
     hpglCmd.hpglCmd = "IN;\r";
-    //hpglCmdBuffer.push(hpglCmd);
+    hpglCmdBuffer.push(hpglCmd);
     
     // Sets terminator for data output from the DXY-1000 series to 13 (D) -> CR
     hpglCmd.hpglCmd = "\x1B.M50;0;0;13;0;0:\r"; // 1B2e4d303b303b303b31333b303b303a
-    //hpglCmdBuffer.push(hpglCmd);
+    hpglCmdBuffer.push(hpglCmd);
     
     // XON char 17 and buffer threshold for XOFF to 150 bytes
     // XON is sent if theres more than 512 bytes in free buffer
     hpglCmd.hpglCmd = "\x1B.I256;0;17:\r"; // 1B2e493135303b303b31373a
-    //hpglCmdBuffer.push(hpglCmd);
+    hpglCmdBuffer.push(hpglCmd);
     
     // XOFF char 19 (less than 150 bytes free -> xoff is sent)
     hpglCmd.hpglCmd = "\x1B.N;19:\r"; // 1B2e4e3b34333a
-    //hpglCmdBuffer.push(hpglCmd);
+    hpglCmdBuffer.push(hpglCmd);
     
     // Enable software XON/XOFF handshaking
-   // hpglCmd.hpglCmd = "\x1B.@;0:\r"; // 1B2e403b303a
-    hpglCmd.hpglCmd = "\x1B.I256;0;42:\x1B.N;43:\x1B.@;0:\r";
-    hpglCmd.hpglCmdDelay = 0;
-    // hpglCmdBuffer.push(hpglCmd);
+    hpglCmd.hpglCmd = "\x1B.@;0:\r"; // 1B2e403b303a
+    hpglCmdBuffer.push(hpglCmd);
 
 };
 
