@@ -32,9 +32,12 @@ public:
     string statusText;
     void drawBufferInfo();
     
+    void pushToBuffer(string cmd, int delay);
+    
     ofPoint translateToOFCords(int x, int y);
     
     bool recalculate;
+    bool emulate;
     
     string HPGLString;
     

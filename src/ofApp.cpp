@@ -24,21 +24,7 @@ void ofApp::setup(){
     plot.deviceBufferFull = true;
     
     recalculate = true;
-    
-    
-    // testing string stuffs
-    //cout << ofToHex('A');
-    //cout << "String: " << ofHexToString("1B2e4d303b303b303b31333b303b303a1B2e493135303b303b31373a1B2e4e3b31393a1B2e403b303a");
-    //cout << "Char: " << ofHexToChar("1B");
-    //cout << "Int:  " << ofHexToInt("1B");
-    
-    //char string[] = { 27 ,'*','+' , 0x1B };
-    //char string1[] = { "\x1B.M0" };
-    
-    //for (int i = 0; i < strlen(string1); i++) {
-        //  cout << i << ":" << int(string1[i]);
-    //}
-    
+    emulate = false;
 }
 
 //--------------------------------------------------------------
@@ -52,39 +38,50 @@ void ofApp::update(){
         simulationPoints.clear();
         
         // testing the 42 diffrent plot speeds HPGL "VS"
-
         // Black pen pls
-        plot.hpglCmd.hpglCmd = "SP1;";
-        plot.hpglCmd.hpglCmdDelay = 0;
-        plot.hpglCmdBuffer.push(plot.hpglCmd);
-        
-        
+        pushToBuffer("SP1;VS5;\r",0);
+
         // now lets generate our drawing: 42 VS values = 42 lines
-        int lineCount = 8;
+        int lineCount = 200;
         
         // Margin to paper edge
         int margin = 400;
         int lineheight = ( PLOTHEIGTH - 2 * margin )  / (lineCount-1);
         
-        for (int i=0; i < lineCount; i++) {
-            int y = lineheight * i;
-            int x = margin;
-            int x1 = PLOTWIDTH - margin;
+        for (int i=0; i < lineCount/2; i++) {
+            int y = lineheight * i * 2;
+            int x = margin * 2;
+            int x1 = PLOTWIDTH - margin * 2;
             
             // Setting up the HPGL Cmd for each line
-            plot.hpglCmd.hpglCmd =  "PA" + ofToString(x) + "," + ofToString(y) + ";\r";
-            plot.hpglCmd.hpglCmdDelay = 1000;
-            plot.hpglCmdBuffer.push(plot.hpglCmd);
+            pushToBuffer("PA" + ofToString(x) + "," + ofToString(y) + ";PD;\r",0);
+            pushToBuffer("PA" + ofToString(x1) + "," + ofToString(y) + ";PU;\r",0);
 
-            plot.hpglCmd.hpglCmd =  "PA" + ofToString(x1) + "," + ofToString(y) + ";\r";
-            plot.hpglCmd.hpglCmdDelay = 1000;
-            plot.hpglCmdBuffer.push(plot.hpglCmd);
-            
             // for simulation on Screen
             simulationPoints.push_back(translateToOFCords(x,y));
             simulationPoints.push_back(translateToOFCords(x1,y));
             
         }
+        
+        pushToBuffer("SP2;VS5;\r",0);
+
+        int y = 0;
+        for (int i=0; i < lineCount/2; i++) {
+            int y = lineheight * i * 2 + lineheight;
+            int x = margin * 2;
+            int x1 = PLOTWIDTH - margin * 2;
+            
+            // Setting up the HPGL Cmd for each line
+            pushToBuffer("PA" + ofToString(x) + "," + ofToString(y) + ";PD;\r",0);
+            pushToBuffer("PA" + ofToString(x1) + "," + ofToString(y) + ";PU;\r",0);
+
+            // for simulation on Screen
+            simulationPoints.push_back(translateToOFCords(x,y));
+            simulationPoints.push_back(translateToOFCords(x1,y));
+            
+        }
+        
+        pushToBuffer("SP2;",0);
         
     }
     
@@ -100,13 +97,25 @@ void ofApp::draw(){
     
     vector<int>::size_type i = 0;
     while( i < simulationPoints.size() - 1) {
+        
         ofDrawLine(simulationPoints[i], simulationPoints[i+1]);
         ofDrawBitmapString(ofToString(i/2),simulationPoints[i]);
-        i = i + 2;
+        
+        i += 2;
     }
     
     // lets keep an eye on the buffer
     drawBufferInfo();
+}
+
+
+void ofApp::pushToBuffer(string cmd, int delay)
+{
+    if(!emulate){
+        plot.hpglCmd.hpglCmd = cmd;
+        plot.hpglCmd.hpglCmdDelay = delay;
+        plot.hpglCmdBuffer.push(plot.hpglCmd);
+    }
 }
 
 //--------------------------------------------------------------

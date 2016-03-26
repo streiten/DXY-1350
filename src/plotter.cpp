@@ -80,12 +80,13 @@ void plotter::update(){
                     sendStringToPlotter(&poppy.hpglCmd);
                     // remove the command from queue
                     hpglCmdBuffer.pop();
-                }
-                
-                requestBuffer();
-
+            } else {
+                ofSleepMillis(3000);
             }
             
+            requestBuffer();
+
+            }
         }
     }
     
@@ -118,10 +119,10 @@ int plotter::processRX(char * rx) {
         
         if( bufferSize > 128 )  {
             deviceBufferFull = false;
-            //cout << endl << "Buffer ok @ " << rx << endl ;
+            cout << endl << "Buffer ok @ " << rx << endl ;
         } else {
             deviceBufferFull = true;
-            //cout << endl << "Buffer full @" << rx << endl ;
+            cout << endl << "Buffer full @" << rx << endl ;
         }
     } else {
         cout << "Something else:" << ofToInt(rx);
