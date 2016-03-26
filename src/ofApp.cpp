@@ -56,14 +56,11 @@ void ofApp::update(){
         // Black pen pls
         plot.hpglCmd.hpglCmd = "SP1;";
         plot.hpglCmd.hpglCmdDelay = 0;
-        // plot.hpglCmdBuffer.push(plot.hpglCmd);
+        plot.hpglCmdBuffer.push(plot.hpglCmd);
         
-        //plot.hpglCmd.hpglCmd = "\r";
-        //plot.hpglCmd.hpglCmdDelay = 0;
-        //plot.hpglCmdBuffer.push(plot.hpglCmd);
         
         // now lets generate our drawing: 42 VS values = 42 lines
-        int lineCount = 42;
+        int lineCount = 8;
         
         // Margin to paper edge
         int margin = 400;
@@ -75,23 +72,20 @@ void ofApp::update(){
             int x1 = PLOTWIDTH - margin;
             
             // Setting up the HPGL Cmd for each line
-            plot.hpglCmd.hpglCmd =  "PA" + ofToString(x) + "," + ofToString(y) + "," + ofToString(x1) + "," + ofToString(y) + ";\r";
-            plot.hpglCmd.hpglCmdDelay = 0;
-            
+            plot.hpglCmd.hpglCmd =  "PA" + ofToString(x) + "," + ofToString(y) + ";\r";
+            plot.hpglCmd.hpglCmdDelay = 1000;
             plot.hpglCmdBuffer.push(plot.hpglCmd);
-            
-            //plot.outputBuffer();
+
+            plot.hpglCmd.hpglCmd =  "PA" + ofToString(x1) + "," + ofToString(y) + ";\r";
+            plot.hpglCmd.hpglCmdDelay = 1000;
+            plot.hpglCmdBuffer.push(plot.hpglCmd);
             
             // for simulation on Screen
             simulationPoints.push_back(translateToOFCords(x,y));
-            simulationPoints.push_back( translateToOFCords(x1,y));
+            simulationPoints.push_back(translateToOFCords(x1,y));
             
-            // cout << margin << "," << y << " -> " << margin <<  "," << y << endl ;
         }
         
-        // Is this still needed actually ? final CR for end of command ?
-        //plot.hpglCmd.hpglCmd ="\r";
-        //plot.hpglCmdBuffer.push(plot.hpglCmd);
     }
     
     plot.update();
@@ -119,26 +113,20 @@ void ofApp::draw(){
 void ofApp::keyPressed  (int key) {
     switch(key) {
             
-            // send the HPGLString to Plotter
+        // send the HPGLString to Plotter
         case 's': {
             cout << "Sending: " << HPGLString << endl ;
             plot.sendStringToPlotter(&HPGLString);
             break;
         }
             
-            // Toggl the deviceBufferFull Flag (stop/start TX in plotter update)
-        case 'b': {
-            if(plot.deviceBufferFull){
-                plot.deviceBufferFull = false;
-                cout << "deviceBufferFull FALSE now" << endl;
-            } else {
-                plot.deviceBufferFull = true;
-                cout << "deviceBufferFull TURE now" << endl;
-            }
+        case 'r': {
+            cout << "Redraw!" << endl ;
+            recalculate = true;
             break;
         }
             
-            // Push dummies to cmdBuffer
+        // Push dummies to cmdBuffer
         case 'd': {
             
             struct plotter::hpglCmd pushy;
@@ -161,8 +149,8 @@ void ofApp::keyPressed  (int key) {
         }
         
         case 'c': {
-            cout << "Reset" << endl ;
-            plot.outputBuffer();
+            cout << "Request remaining buffer... " << endl ;
+            plot.requestBuffer();
             break;
         }
     }
@@ -263,10 +251,10 @@ void ofApp::drawBufferInfo(){
     if(plot.deviceBufferFull){
         ofPushStyle();
         ofSetColor(255,0,0);
-        statusText = "XOFF";
+        statusText = "FULL";
     } else {
         ofSetColor(0,255,0);
-        statusText = "XON";
+        statusText = "OK";
     }
     
     ofDrawBitmapString(statusText, bufferSizeScaled + 3, 12 );

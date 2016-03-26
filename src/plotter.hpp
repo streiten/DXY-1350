@@ -15,21 +15,22 @@ class plotter {
 public:
     
     ofSerial	serial;
-    char		bytesRead[255];
-    char		bytesReadString[256];
+    
+    int bufferSize;
+    bool bufferSizeRequested;
+    bool deviceBufferFull;
+
+    int requestSent;
     
     struct hpglCmd {
         string hpglCmd;
         int hpglCmdDelay;
     };
     
-    
     queue <hpglCmd> hpglCmdBuffer;
     hpglCmd hpglCmd;
     void clearHpglCmdBuffer();
 
-    
-    bool deviceBufferFull;
     atTimer timer;
     
     void setup();
@@ -40,7 +41,7 @@ public:
     int reset();
     int outputError();
     int outputStatus();
-    int outputBuffer();
+    int requestBuffer();
     
     void sendStringToPlotter( string * buffer);
     
